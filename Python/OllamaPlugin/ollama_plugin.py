@@ -1,5 +1,6 @@
 # ai-plugin-collection/Python/OllamaPlugin/ollama_plugin.py
 
+# === Built-in Dependencies
 import sys
 import time
 import subprocess
@@ -165,6 +166,93 @@ class OllamaPlugin:
         except Exception as e:
             print(f"Error retrieving Ollama version: {e}")
             return None
+
+    def start_running_model(self, model: str) -> bool:
+        try:
+            result = subprocess.run(
+                ["ollama", "run", model],
+                capture_output=True,
+                text=True,
+                timeout=60  # increase sufficiently if necessary
+            )
+            if result.returncode == 0:
+                return True
+            else:
+                # if the model is already loaded, for example, the CLI may return an error, but can still be considered “started.”
+                if "already running" in result.stderr.lower():
+                    return True
+                return False
+        except Exception as e:
+            print("Error during execution – e.g. incorrect model name, CLI not in the path, etc.")
+            return False
+
+    def stop_running_model(self, model: str) -> bool:
+        try:
+            result = subprocess.run(
+                ["ollama", "stop", model],
+                capture_output=True,
+                text=True,
+                timeout=20
+            )
+            if result.returncode == 0:
+                # successfully stopped
+                return True
+            else:
+                # model may not exist, continue processing error log
+                if "no running model" in result.stderr.lower():
+                    # model was already inactive -> considered successfully stopped
+                    return True
+                # other error
+                return False
+        except Exception as e:
+            print(f"Error executing command to stop {model}.")
+            return False
+
+    def stop_running_ollama(self, model: str) -> bool:
+        try:
+            # Unix/Linux/macOS: find and kill the ollama process that is using the model
+            if sys.platform.startswith("linux") or sys.platform == "darwin":
+                # find process ID(s) with the model name in the command
+                ps = subprocess.run(
+                    ["pgrep", "-f", f"ollama.*{model}"],
+                    capture_output=True, text=True
+                )
+                if ps.returncode != 0:
+                    # no process found
+                    return True
+                pids = [pid for pid in ps.stdout.split() if pid.isdigit()]
+                for pid in pids:
+                    subprocess.run(["kill", "-9", pid])
+                return True if pids else False
+
+            # Windows: taskkill for processes containing model names
+            elif sys.platform.startswith("win"):
+                result = subprocess.run(
+                    ["tasklist"], capture_output=True, text=True
+                )
+                # search for lines that match ollama.exe and model names
+                matching = [line for line in result.stdout.splitlines()
+                            if "ollama.exe" in line.lower() and model.lower() in line.lower()]
+                if matching:
+                    # force quit all related processes
+                    for line in matching:
+                        columns = line.split()
+                        if columns:
+                            pid = columns[1]
+                            subprocess.run(["taskkill", "/PID", pid, "/F"])
+                    return True
+                else:
+                    return True  # no model process found - considered closed
+            else:
+                print("Unsupported system.")
+                return False
+        except Exception as e:
+            print("Errors when stopping (e.g., permissions or subprocess errors).")
+            return False
+
+    def check_is_model_installed(self, model: str) -> bool:
+        return model in self.get_models()
+
 
     # === Model Management
     def get_models(self) -> List[Dict[str, Any]]:
