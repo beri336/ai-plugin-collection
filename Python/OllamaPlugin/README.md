@@ -1,6 +1,7 @@
 # Ollama Plugin CLI
 
 ## Inhaltsverzeichnis
+
 - [Über das Plugin](#über-das-plugin)
 - [Installation](#installation)
 - [Klassen und Methoden](#klassen-und-methoden)
@@ -30,6 +31,7 @@ Das Plugin ist darauf ausgelegt, Ollama-Verwaltungsaufgaben zu vereinfachen und 
 ## Installation
 
 Das Plugin nutzt ausschließlich Python-Standardbibliotheken:
+
 - `subprocess` für Systemaufrufe
 - `platform` für Betriebssystemerkennung
 - `sys` für Systeminformationen
@@ -49,12 +51,14 @@ Die Hauptklasse für alle Ollama-Operationen über CLI-Befehle.
 
 - `is_ollama_installed() -> bool`  
   Prüft, ob das Ollama-Binary installiert ist durch Ausführung von `ollama --version`.
-  
 - `install_ollama() -> bool`  
   Installiert Ollama automatisch auf Linux/ macOS über das offizielle Installationsskript.
 
 - `get_ollama_version() -> Optional[str]`  
   Gibt die installierte Ollama-Version zurück.
+
+- `check_is_model_installed() -> bool`  
+  Überprüft, ob ein spezifisches Modell installiert ist.
 
 ---
 
@@ -62,6 +66,7 @@ Die Hauptklasse für alle Ollama-Operationen über CLI-Befehle.
 
 - `is_ollama_running() -> bool`  
   Prüft, ob der Ollama-Service läuft:
+
   - Linux/ macOS: Verwendet `pgrep -f ollama`
   - Windows: Verwendet `tasklist` und sucht nach `ollama.exe`
 
@@ -87,11 +92,28 @@ Die Hauptklasse für alle Ollama-Operationen über CLI-Befehle.
   Zeigt aktuell laufende/ geladene Modelle über `ollama ps`.
   Gibt die Modellnamen der ersten Spalte zurück.
 
+- `start_running_model() -> bool`  
+  Startet ein spezifisches Modell über `ollama run`.
+
+  - Timeout: 60 Sekunden
+  - Behandelt "already running" als Erfolg
+
+- `stop_running_model() -> bool`  
+  Stoppt ein laufendes Modell über `ollama stop`.
+
+  - Timeout: 20 Sekunden
+  - Behandelt "no running model" als erfolgreich gestoppt
+
+- `stop_running_ollama() -> bool`  
+  Forciert das Beenden von Ollama-Prozessen für ein Modell:
+  - Linux/macOS: Verwendet `pgrep` und `kill -9` für spezifische PIDs
+  - Windows: Verwendet `tasklist` und `taskkill /F` für forcierte Beendigung
+
 ---
 
 ### AI-Generierung
 
-- `send_code_prompt(model: str, prompt: str, code: str) -> str`  
+- `send_code_prompt() -> str`  
   Sendet einen Prompt mit Code an ein Ollama-Modell:
   - Ersetzt `{code}` im Prompt mit dem tatsächlichen Code
   - Verwendet `ollama run` mit stdin-Eingabe
@@ -115,7 +137,11 @@ Das CLI bietet folgende Optionen:
 7. **Modelle anzeigen** - Liste aller installierten Modelle
 8. **Laufende Modelle** - Zeigt aktiv geladene Modelle
 9. **Prompt + Code** - Sendet Anfragen an Modelle
-10. **Beenden** - Verlässt die CLI
+10. **Starte ein Modell** - Startet spezifisches Modell
+11. **Stoppe ein Modell** - Stoppt laufendes Modell graceful
+12. **Stoppe Ollama Client** - Forciert Beendigung von Modell-Prozessen
+13. **Überprüfe Modell-Installation** - Verifiziert ob Modell installiert ist
+14. **Beenden** - Verlässt die CLI
 
 ### Eingabeformate
 
@@ -134,12 +160,14 @@ Das CLI bietet folgende Optionen:
 ## Verwendung
 
 1. **CLI starten**:
-```
-python example_usage.py
+
+```bash
+python3 example_usage.py
 ```
 
 2. **Als Modul verwenden**:
-```
+
+```py
 from app import OllamaPlugin
 
 plugin = OllamaPlugin()
@@ -149,7 +177,8 @@ if plugin.is_ollama_installed():
 ```
 
 3. **Installation prüfen und durchführen**:
-```
+
+```py
 plugin = OllamaPlugin()
 
 if not plugin.is_ollama_installed():
@@ -169,7 +198,7 @@ if not plugin.is_ollama_running():
 
 ![created-by](/Pictures/created-by.svg)
 
-**Version:** 1.0.0  
+**Version:** 1.1.0
 
 ---
 
