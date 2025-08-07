@@ -13,6 +13,10 @@ def get_menu_items():
         ("Modelle anzeigen", "get_models", []),
         ("Laufende Modelle", "get_current_running_models", []),
         ("Prompt + Code: Modell, Prompt, Code kombinieren und per CLI schicken", "send_code_prompt", ["Modellname", "Prompt (nutze ggf. {code})", "Code (als Text, mehrzeilig mit \\n)"]),
+        ("Starte ein Modell", "start_running_model", ["Modellname"]),
+        ("Stoppe ein Modell", "stop_running_model", ["Modellname"]),
+        ("Stoppe Ollama Client", "stop_running_ollama", ["Modellname"]),
+        ("Überprüfe, ob ein Modell installiert ist", "check_is_model_installed", ["Modellname"]),
         
         ("Beenden", "exit", [])
     ]
