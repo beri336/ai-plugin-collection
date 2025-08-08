@@ -12,7 +12,7 @@
     - [KI-Generierung](#ki-generierung)
 - [CLI-Interface](#cli-interface)
 - [Beispiel zur Nutzung](#beispiel-zur-nutzung)
-- [Autoren und Lizenz](#autoren-und-lizenz)
+- [Autoren und Lizenz](#autoren)
 
 ---
 
@@ -109,6 +109,21 @@ Die Hauptklasse für alle Ollama-Operationen über CLI-Befehle.
   - Linux/macOS: Verwendet `pgrep` und `kill -9` für spezifische PIDs
   - Windows: Verwendet `tasklist` und `taskkill /F` für forcierte Beendigung
 
+- `pull_model(model_name: str) -> bool`  
+  Lädt ein Modell in einem neuen Terminal-Fenster herunter:
+  - macOS: Öffnet Terminal via AppleScript mit `ollama pull`
+  - Linux: Unterstützt gnome-terminal, xterm, konsole, xfce4-terminal
+  - Windows: Öffnet Command Prompt mit `start cmd /k`
+  - Asynchroner Download im separaten Fenster
+
+- `delete_model(model_name: str) -> bool`  
+  Löscht ein installiertes Modell über `ollama rm`:
+  - Synchrone Operation mit Statusmeldungen
+
+- `show_model_info(model_name: str) -> Optional[Dict[str, Any]]`  
+  Ruft detaillierte Modellinformationen ab über `ollama show`:
+  - Parst Ausgabe in strukturiertes Dictionary
+
 ---
 
 ### AI-Generierung
@@ -141,7 +156,10 @@ Das CLI bietet folgende Optionen:
 11. **Stoppe ein Modell** - Stoppt laufendes Modell graceful
 12. **Stoppe Ollama Client** - Forciert Beendigung von Modell-Prozessen
 13. **Überprüfe Modell-Installation** - Verifiziert ob Modell installiert ist
-14. **Beenden** - Verlässt die CLI
+14. **Lade ein Modell herunter** - Lädt Modell in neuem Terminal-Fenster
+15. **Ein Modell löschen** - Entfernt installiertes Modell
+16. **Zeige Modell-Informationen an** - Zeigt detaillierte Modell-Metadaten
+17. **Beenden** - Verlässt die CLI
 
 ### Eingabeformate
 
@@ -153,7 +171,7 @@ Das CLI bietet folgende Optionen:
 
 ## Beispiel zur Nutzung
 
-- siehe [Beispielnutzung](Pictures/created-by.svg)
+- siehe [Beispielnutzung](/Python/OllamaPlugin/example_usage.py)
 
 ---
 
@@ -192,13 +210,13 @@ if not plugin.is_ollama_running():
 
 ---
 
-## Autoren und Lizenz
+## Autoren
 
 **Autor:**
 
 ![created-by](/Pictures/created-by.svg)
 
-**Version:** 1.1.0
+**Version:** 1.2.0
 
 ---
 
