@@ -322,6 +322,153 @@ class OllamaPlugin:
         
         return []
 
+    def pull_model(self, model_name: str) -> bool:
+        try:
+            system = platform.system().lower()
+            
+            if system == "darwin":  # macOS
+                # opens a new terminal window with the ollama pull command
+                script = f'tell application "Terminal" to do script "ollama pull {model_name}"'
+                result = subprocess.run(
+                    ["osascript", "-e", script],
+                    capture_output=True,
+                    text=True,
+                    timeout=10
+                )
+                return result.returncode == 0
+                
+            elif system == "linux":
+                # try different terminal emulators
+                terminals = ["gnome-terminal", "xterm", "konsole", "xfce4-terminal"]
+                
+                for terminal in terminals:
+                    try:
+                        if terminal == "gnome-terminal":
+                            result = subprocess.run(
+                                [terminal, "--", "bash", "-c", f"ollama pull {model_name}; read -p 'Press Enter to close...'"],
+                                timeout=10
+                            )
+                        elif terminal == "konsole":
+                            result = subprocess.run(
+                                [terminal, "-e", "bash", "-c", f"ollama pull {model_name}; read -p 'Press Enter to close...'"],
+                                timeout=10
+                            )
+                        else:  # xterm, xfce4-terminal
+                            result = subprocess.run(
+                                [terminal, "-e", f"bash -c 'ollama pull {model_name}; read -p \"Press Enter to close...\"'"],
+                                timeout=10
+                            )
+                        return True
+                    except FileNotFoundError:
+                        continue
+                
+                print("No supported terminal emulator found.")
+                return False
+                
+            elif system == "windows":
+                # Windows command prompt in a new window
+                result = subprocess.run(
+                    ["cmd", "/c", "start", "cmd", "/k", f"ollama pull {model_name}"],
+                    timeout=10
+                )
+                return result.returncode == 0
+                
+            else:
+                print(f"Unsupported operating system: {system}")
+                return False
+                
+        except subprocess.TimeoutExpired:
+            print("Timeout beim Öffnen des Terminal-Fensters.")
+            return False
+        except Exception as e:
+            print(f"Error opening new terminal window: {e}")
+            return False
+        
+    def delete_model(self, model_name: str) -> bool:
+        try:
+            result = subprocess.run(
+                ["ollama", "rm", model_name],
+                capture_output=True,
+                text=True,
+                timeout=60  # timeout for deletion process
+            )
+            
+            if result.returncode == 0:
+                print(f"Model '{model_name}' successfully deleted.")
+                return True
+            else:
+                # handling specific error messages
+                if "model not found" in result.stderr.lower() or "no such model" in result.stderr.lower():
+                    print(f"Model '{model_name}' not found or already deleted.")
+                    return False
+                elif "model is currently being used" in result.stderr.lower():
+                    print(f"Model '{model_name}' is currently in use and cannot be deleted.")
+                    return False
+                else:
+                    print(f"Error deleting model: {result.stderr.strip()}")
+                    return False
+                    
+        except subprocess.TimeoutExpired:
+            print(f"Timeout while deleting model '{model_name}' - operation took too long.")
+            return False
+        except FileNotFoundError:
+            print("Ollama command not found - ensure Ollama is installed and in PATH.")
+            return False
+        except Exception as e:
+            print(f"Error during model deletion: {e}")
+            return False
+
+    def show_model_info(self, model_name: str) -> Optional[Dict[str, Any]]:
+        try:
+            result = subprocess.run(
+                ["ollama", "show", model_name],
+                capture_output=True,
+                text=True,
+                timeout=30  # timeout for info query
+            )
+            
+            if result.returncode == 0:
+                # timeout for info query
+                info_dict = {}
+                output_lines = result.stdout.strip().splitlines()
+                
+                for line in output_lines:
+                    line = line.strip()
+                    if line and ':' in line:
+                        key, value = line.split(':', 1)
+                        info_dict[key.strip().lower().replace(' ', '_')] = value.strip()
+                    elif line:
+                        # multi-line content (e.g., model file)
+                        if 'modelfile' not in info_dict:
+                            info_dict['raw_output'] = result.stdout.strip()
+                
+                # add additional metadata
+                info_dict['model_name'] = model_name
+                info_dict['command_success'] = True
+                
+                print(f"Model info for '{model_name}' retrieved successfully.")
+                return info_dict
+                
+            else:
+                # handling specific error messages
+                if "model not found" in result.stderr.lower() or "no such model" in result.stderr.lower():
+                    print(f"Model '{model_name}' not found.")
+                    return None
+                else:
+                    print(f"Error retrieving model info: {result.stderr.strip()}")
+                    return None
+                    
+        except subprocess.TimeoutExpired:
+            print(f"Timeout while retrieving info for model '{model_name}'.")
+            return None
+        except FileNotFoundError:
+            print("Ollama command not found - ensure Ollama is installed and in PATH.")
+            return None
+        except Exception as e:
+            print(f"Error retrieving model info: {e}")
+            return None
+
+
     # === AI Generation
     def send_code_prompt(self, model: str, prompt: str, code: str) -> str:
         try:
