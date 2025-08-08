@@ -17,6 +17,9 @@ def get_menu_items():
         ("Stoppe ein Modell", "stop_running_model", ["Modellname"]),
         ("Stoppe Ollama Client", "stop_running_ollama", ["Modellname"]),
         ("Überprüfe, ob ein Modell installiert ist", "check_is_model_installed", ["Modellname"]),
+        ("Lade ein Modell herunter", "pull_model", ["Modellname"]),
+        ("Ein Modell löschen", "delete_model", ["Modellname"]),
+        ("Zeige Modell-Informationen an", "show_model_info", ["Modellname"]),
         
         ("Beenden", "exit", [])
     ]
