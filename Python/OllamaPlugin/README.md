@@ -137,6 +137,28 @@ Die Hauptklasse für alle Ollama-Operationen über CLI-Befehle.
 
 ---
 
+### Utility-Methoden
+
+- `estimate_tokenizer(prompt: str) -> int`  
+  Schätzt die Anzahl der Tokens für einen gegebenen Prompt:
+  - Verwendet durchschnittlich 4 Zeichen pro Token als Schätzung
+  - Behandelt leere oder ungültige Eingaben (gibt 0 zurück)
+  - Gibt mindestens 1 Token zurück für gültige Prompts
+  - Nützlich für Token-Limits und Kostenabschätzungen
+
+- `validate_model_name(model_name: str) -> bool`  
+  Validiert die Syntax und Gültigkeit von Modellnamen:
+  - Prüft auf leere oder ungültige String-Eingaben
+  - Blockiert ungültige Zeichen: `< > " | ? *`
+
+- `search_models(query: str) -> List[Dict[str, Any]]`  
+  Sucht installierte Modelle anhand eines Suchbegriffs:
+  - Durchsucht alle installierten Modelle (via `get_models_via_cmd()`)
+  - Case-insensitive Teilstring-Suche
+  - Gibt Liste von Dictionaries zurück: `[{"name": "model_name"}]`
+
+---
+
 ## CLI-Interface
 
 ### Menüoptionen
@@ -159,7 +181,10 @@ Das CLI bietet folgende Optionen:
 14. **Lade ein Modell herunter** - Lädt Modell in neuem Terminal-Fenster
 15. **Ein Modell löschen** - Entfernt installiertes Modell
 16. **Zeige Modell-Informationen an** - Zeigt detaillierte Modell-Metadaten
-17. **Beenden** - Verlässt die CLI
+17. **Tokenverbrauch schätzen** - Schätzt Token-Anzahl für Prompts
+18. **Überprüfen, ob Modell installiert** - Validiert Modellnamen-Syntax
+19. **Suche nach Modell** - Durchsucht installierte Modelle
+20. **Beenden** - Verlässt die CLI
 
 ### Eingabeformate
 
