@@ -469,6 +469,51 @@ class OllamaPlugin:
             return None
 
 
+    # === Utility Methods ===
+    def estimate_tokenizer(self, prompt: str) -> int:
+        if not isinstance(prompt, str) or not prompt:
+            return 0
+        avg_chars_per_token = 4
+        total_chars = len(prompt.strip())
+        
+        return max(1, total_chars / avg_chars_per_token)  # always return at least 1 token
+
+    def validate_model_name(self, model_name: str) -> bool:
+        try:
+            if not model_name or not isinstance(model_name, str):
+                return False
+            
+            # basic validation
+            if len(model_name.strip()) == 0:
+                return False
+            
+            # check for invalid characters
+            invalid_chars = ['<', '>', '"', '|', '?', '*']
+            if any(char in model_name for char in invalid_chars):
+                return False
+            
+            print(f"Model name ‘{model_name}’ is valid")
+            return True
+            
+        except Exception as e:
+            print(f"Error in model name validation: {e}")
+            return False
+
+    def search_models(self, query: str) -> List[Dict[str, Any]]:
+        try:
+            all_models = self.get_models()
+            query_lower = query.lower()
+            matching = []
+            for model_name in all_models:
+                if query_lower in model_name.lower():
+                    matching.append({"name": model_name})
+            print(f"{len(matching)} Models found for search: {query}")
+            return matching
+        except Exception as e:
+            print(f"Error during model search: {e}")
+            return []
+
+
     # === AI Generation
     def send_code_prompt(self, model: str, prompt: str, code: str) -> str:
         try:
