@@ -20,6 +20,9 @@ def get_menu_items():
         ("Lade ein Modell herunter", "pull_model", ["Modellname"]),
         ("Ein Modell löschen", "delete_model", ["Modellname"]),
         ("Zeige Modell-Informationen an", "show_model_info", ["Modellname"]),
+        ("Tokenverbrauch schätzen", "estimate_tokenizer", ["Prompt"]),
+        ("Überprüfen, ob Modell installiert", "validate_model_name", ["Modellname"]),
+        ("Suche nach Modell", "search_models", ["Modellname"]),
         
         ("Beenden", "exit", [])
     ]
